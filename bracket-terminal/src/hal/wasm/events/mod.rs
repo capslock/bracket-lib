@@ -32,18 +32,18 @@ pub fn bind_wasm_events(canvas: &web_sys::HtmlCanvasElement) {
     mousemove_callback.forget();
 
     // Handle mouse clicking
-    let mouseclick_callback = Closure::wrap(Box::new(|e: web_sys::MouseEvent| {
+    let mouseclick_callback = Closure::wrap(Box::new(|e: web_sys::PointerEvent| {
         on_mouse_down(e.clone());
     }) as Box<dyn FnMut(_)>);
 
-    canvas.set_onmousedown(Some(mouseclick_callback.as_ref().unchecked_ref()));
+    canvas.set_onpointerdown(Some(mouseclick_callback.as_ref().unchecked_ref()));
     mouseclick_callback.forget();
 
     // Handle mouse release
-    let mouseunclick_callback = Closure::wrap(Box::new(|e: web_sys::MouseEvent| {
+    let mouseunclick_callback = Closure::wrap(Box::new(|e: web_sys::PointerEvent| {
         on_mouse_up(e.clone());
     }) as Box<dyn FnMut(_)>);
 
-    canvas.set_onmouseup(Some(mouseunclick_callback.as_ref().unchecked_ref()));
+    canvas.set_onpointerup(Some(mouseunclick_callback.as_ref().unchecked_ref()));
     mouseunclick_callback.forget();
 }

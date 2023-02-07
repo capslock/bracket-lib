@@ -21,7 +21,7 @@ pub fn on_mouse_move(mouse: web_sys::MouseEvent) {
 pub static mut GLOBAL_LEFT_CLICK: bool = false;
 
 /// Event called via the web interface to indicate mouse clicking
-pub fn on_mouse_down(_mouse: web_sys::MouseEvent) {
+pub fn on_mouse_down(_mouse: web_sys::PointerEvent) {
     //super::super::log(&format!("Mouse click {}", mouse.buttons()));
     INPUT.lock().on_mouse_button_down(0);
     unsafe {
@@ -30,7 +30,7 @@ pub fn on_mouse_down(_mouse: web_sys::MouseEvent) {
 }
 
 /// Event called via the web interface to indicate mouse clicking
-pub fn on_mouse_up(_mouse: web_sys::MouseEvent) {
+pub fn on_mouse_up(_mouse: web_sys::PointerEvent) {
     //super::super::log(&format!("Mouse unclick {}", mouse.button()));
     INPUT.lock().on_mouse_button_up(0);
     unsafe {
