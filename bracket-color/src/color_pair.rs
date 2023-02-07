@@ -1,6 +1,26 @@
 use crate::prelude::RGBA;
 
+#[cfg(feature = "bevy")]
+use bevy::ecs::reflect::ReflectComponent;
+#[cfg(all(feature = "bevy", feature = "serde"))]
+use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
+#[cfg(feature = "bevy")]
+use bevy::reflect::Reflect;
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "bevy",
+    derive(
+        bevy::ecs::component::Component,
+        bevy::reflect::Reflect,
+        bevy::reflect::FromReflect
+    )
+)]
+#[cfg_attr(feature = "bevy", reflect(Component))]
+#[cfg_attr(
+    all(feature = "bevy", feature = "serde"),
+    reflect(Serialize, Deserialize)
+)]
 #[derive(PartialEq, Copy, Clone, Default, Debug)]
 /// Represents two colors together, a foreground and a background.
 /// Frequently used to represent a glyph rendered on a console with
@@ -16,9 +36,9 @@ impl ColorPair {
     #[inline]
     #[must_use]
     /// Creates a new `ColorPair`, from two given colors.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `fg` - The foreground color to use.
     /// * `bg` - The background color to use.
     pub fn new<COLOR, COLOR2>(fg: COLOR, bg: COLOR2) -> Self

@@ -27,7 +27,7 @@ incremental = false # Causing issues with Windows builds
 
 [features]
 default = [ "opengl" ]
-bevy = ["bracket-geometry/bevy"]
+bevy = [ "bracket-geometry/bevy", "bracket-color/bevy" ]
 specs = [ "bracket-geometry/specs" ]
 serde = [ "bracket-color/serde", "bracket-geometry/serde", "bracket-random/serde" ]
 threaded = [ "bracket-pathfinding/threaded" ]
