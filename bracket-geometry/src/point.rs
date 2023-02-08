@@ -5,8 +5,24 @@ use ultraviolet::Vec2;
 /// A 2D floating-point position.
 pub type PointF = Vec2;
 
+#[cfg(feature = "bevy")]
+use bevy::ecs::reflect::ReflectComponent;
+#[cfg(all(feature = "bevy", feature = "serde"))]
+use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
+#[cfg(feature = "bevy")]
+use bevy::reflect::Reflect;
+
+#[cfg_attr(
+    feature = "bevy",
+    derive(bevy::reflect::Reflect, bevy::reflect::FromReflect)
+)]
+#[cfg_attr(feature = "bevy", reflect(Component))]
+#[cfg_attr(
+    all(feature = "bevy", feature = "serde"),
+    reflect(Serialize, Deserialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Eq, PartialEq, Copy, Clone, Debug, Hash)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug, Hash, Default)]
 /// Helper struct defining a 2D point in space.
 pub struct Point {
     /// The point's X location
@@ -80,9 +96,9 @@ impl Point {
     }
 
     /// Converts the point to a usize tuple
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// This can panic if X or Y are not convertible to a `usize`.
     #[must_use]
     pub fn to_unsigned_tuple(self) -> (usize, usize) {

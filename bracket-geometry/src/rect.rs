@@ -1,9 +1,29 @@
 use crate::prelude::Point;
-use std::collections::HashSet;
+use hashbrown::HashSet;
 use std::convert::TryInto;
 use std::ops;
 
+#[cfg(feature = "bevy")]
+use bevy::ecs::reflect::ReflectComponent;
+#[cfg(all(feature = "bevy", feature = "serde"))]
+use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
+#[cfg(feature = "bevy")]
+use bevy::reflect::Reflect;
+
 /// Defines a two-dimensional rectangle.
+#[cfg_attr(
+    feature = "bevy",
+    derive(
+        bevy::ecs::component::Component,
+        bevy::reflect::Reflect,
+        bevy::reflect::FromReflect
+    )
+)]
+#[cfg_attr(feature = "bevy", reflect(Component))]
+#[cfg_attr(
+    all(feature = "bevy", feature = "serde"),
+    reflect(Serialize, Deserialize)
+)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub struct Rect {
@@ -97,16 +117,16 @@ impl Rect {
         }
     }
 
+    /// Returns an iterator over all points in the rectangle.
+    #[must_use]
+    pub fn iter_points(&self) -> impl Iterator<Item = Point> + '_ {
+        (self.y1..self.y2).flat_map(|y| (self.x1..self.x2).map(move |x| Point::new(x, y)))
+    }
+
     /// Gets a set of all tiles in the rectangle
     #[must_use]
     pub fn point_set(&self) -> HashSet<Point> {
-        let mut result = HashSet::new();
-        for y in self.y1..self.y2 {
-            for x in self.x1..self.x2 {
-                result.insert(Point::new(x, y));
-            }
-        }
-        result
+        self.iter_points().collect()
     }
 
     /// Returns the rectangle's width
@@ -188,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_rect_callback() {
-        use std::collections::HashSet;
+        use hashbrown::HashSet;
 
         let r1 = Rect::with_size(0, 0, 1, 1);
         let mut points: HashSet<Point> = HashSet::new();
