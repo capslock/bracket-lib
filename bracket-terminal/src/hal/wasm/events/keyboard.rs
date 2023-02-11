@@ -35,6 +35,8 @@ pub fn on_key(key: web_sys::KeyboardEvent) {
             GLOBAL_MODIFIERS.2 = true;
         }
     }
+
+    key.prevent_default();
 }
 
 pub fn on_key_up(key: web_sys::KeyboardEvent) {
