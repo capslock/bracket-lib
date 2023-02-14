@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, time::FixedTimestep};
 use bracket_bevy::prelude::*;
 use std::cmp::{max, min};
 
@@ -16,7 +16,13 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(BTermBuilder::simple_80x50().with_random_number_generator(true))
         .add_startup_system(setup)
-        .add_system(tick)
+        .add_system(draw_map)
+        .add_system_set(
+            SystemSet::default()
+                .before(draw_map)
+                .with_run_criteria(FixedTimestep::step(0.1))
+                .with_system(player_input),
+        )
         .run();
 }
 
@@ -38,20 +44,13 @@ fn setup(mut commands: Commands, rng: Res<RandomNumbers>) {
         .insert(Player {});
 }
 
-fn tick(
-    ctx: Res<BracketContext>,
+fn player_input(
     map: Res<Map>,
     keyboard: Res<Input<KeyCode>>,
-    mut queries: ParamSet<(
-        Query<&mut Position, With<Player>>,
-        Query<(&Position, &Renderable)>,
-    )>,
+    mut player_query: Query<&mut Position, With<Player>>,
 ) {
-    ctx.cls();
-
-    let delta = player_input(&keyboard);
+    let delta = player::player_input(&keyboard);
     if delta != (0, 0) {
-        let mut player_query = queries.p0();
         let mut pos = player_query.single_mut();
         let destination_idx = xy_idx(pos.x + delta.0, pos.y + delta.1);
         if map.0[destination_idx] != TileType::Wall {
@@ -59,9 +58,13 @@ fn tick(
             pos.y = min(49, max(0, pos.y + delta.1));
         }
     }
+}
 
-    draw_map(&map.0, &ctx);
-    for (pos, render) in queries.p1().iter() {
+fn draw_map(ctx: Res<BracketContext>, map: Res<Map>, query: Query<(&Position, &Renderable)>) {
+    ctx.cls();
+
+    map::draw_map(&map.0, &ctx);
+    for (pos, render) in query.iter() {
         ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
     }
 }
