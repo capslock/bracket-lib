@@ -7,7 +7,7 @@ use crate::{
 };
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{CoreStage, Plugin, SystemStage, Resource},
+    prelude::{CoreStage, Plugin, Resource, SystemStage},
     utils::HashMap,
 };
 use bracket_color::prelude::RGBA;
@@ -107,6 +107,9 @@ impl BTermBuilder {
                         features.insert(crate::SparseConsoleFeatures::WithoutBackground);
                     }
                 }
+                TerminalLayer::Fancy { features, .. } => {
+                    features.insert(crate::SparseConsoleFeatures::WithoutBackground);
+                }
             }
         }
         self
@@ -169,6 +172,18 @@ impl BTermBuilder {
             width,
             height,
             features: HashSet::new(),
+        });
+        self
+    }
+
+    pub fn with_fancy_console(mut self, font_index: usize, width: i32, height: i32) -> Self {
+        let mut features = HashSet::new();
+        features.insert(crate::SparseConsoleFeatures::WithoutBackground);
+        self.layers.push(TerminalLayer::Fancy {
+            font_index,
+            width,
+            height,
+            features,
         });
         self
     }

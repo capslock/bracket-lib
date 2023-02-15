@@ -1,11 +1,11 @@
 use crate::{
-    consoles::{ConsoleFrontEnd, DrawBatch, DrawCommand, ScreenScaler},
+    consoles::{ConsoleFrontEnd, DrawBatch, DrawCommand, FlexiTile, ScreenScaler, SparseConsole},
     fonts::FontStore,
     FontCharType, TerminalScalingMode,
 };
-use bevy::{sprite::Mesh2dHandle, utils::HashMap, prelude::Resource};
+use bevy::{prelude::Resource, sprite::Mesh2dHandle, utils::HashMap};
 use bracket_color::prelude::RGBA;
-use bracket_geometry::prelude::{Point, Rect};
+use bracket_geometry::prelude::{Point, PointF, Radians, Rect};
 use parking_lot::Mutex;
 
 #[derive(Resource)]
@@ -401,6 +401,35 @@ impl BracketContext {
         self.terminals.lock()[self.current_layer()].set_all_alpha(fg, bg);
     }
 
+    /// Set a tile with "fancy" additional attributes
+    #[allow(clippy::too_many_arguments)]
+    pub fn set_fancy<C: Into<RGBA>, G: Into<u16>, ANGLE>(
+        &self,
+        position: PointF,
+        z_order: i32,
+        rotation: ANGLE,
+        scale: PointF,
+        fg: C,
+        bg: C,
+        glyph: G,
+    ) where
+        ANGLE: Into<Radians>,
+    {
+        let cons = &mut self.terminals.lock()[self.current_layer()];
+        let cons_any = cons.as_any_mut();
+        if let Some(fc) = cons_any.downcast_mut::<SparseConsole<FlexiTile>>() {
+            fc.set_fancy(
+                position,
+                z_order,
+                rotation.into().0,
+                scale,
+                fg.into(),
+                bg.into(),
+                glyph.try_into().ok().expect("Must be u16 convertible"),
+            );
+        }
+    }
+
     /// Retrieve a named color from the palette.
     /// Note that this replaces the `bracket_color` palette; there were performance problems
     /// using it on Bevy.
@@ -520,6 +549,16 @@ impl BracketContext {
                 DrawCommand::SetFgAlpha { alpha } => self.set_all_fg_alpha(*alpha),
                 DrawCommand::SetBgAlpha { alpha } => self.set_all_fg_alpha(*alpha),
                 DrawCommand::SetAllAlpha { fg, bg } => self.set_all_alpha(*fg, *bg),
+                DrawCommand::SetFancy {
+                    position,
+                    z_order,
+                    rotation,
+                    color,
+                    glyph,
+                    scale,
+                } => self.set_fancy(
+                    *position, *z_order, *rotation, *scale, color.fg, color.bg, *glyph,
+                ),
             })
         });
 

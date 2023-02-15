@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use bevy::prelude::{Assets, Handle, Mesh};
 mod simple_console;
 use bracket_geometry::prelude::{Point, Rect};
@@ -128,6 +130,9 @@ pub(crate) trait ConsoleFrontEnd: Sync + Send {
     fn get_mouse_position_for_current_layer(&self) -> Point;
     fn set_mouse_position(&mut self, position: (f32, f32), scaler: &ScreenScaler);
     fn get_font_index(&self) -> usize;
+
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]

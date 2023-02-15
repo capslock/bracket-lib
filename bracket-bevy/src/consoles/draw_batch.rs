@@ -1,6 +1,6 @@
 use super::TextAlign;
 use bracket_color::prelude::{ColorPair, RGBA};
-use bracket_geometry::prelude::{Point, Rect};
+use bracket_geometry::prelude::{Point, PointF, Radians, Rect};
 
 pub struct DrawBatch {
     pub(crate) batch: Vec<(u32, DrawCommand)>,
@@ -662,6 +662,31 @@ impl DrawBatch {
         self.batch.push((z, DrawCommand::SetAllAlpha { fg, bg }));
         self
     }
+
+    /// Pushes a fancy terminal character
+    pub fn set_fancy<ANGLE: Into<Radians>, Z: TryInto<i32>, G: TryInto<u16>>(
+        &mut self,
+        position: PointF,
+        z_order: Z,
+        rotation: ANGLE,
+        scale: PointF,
+        color: ColorPair,
+        glyph: G,
+    ) -> &mut Self {
+        let z = self.next_z();
+        self.batch.push((
+            z,
+            DrawCommand::SetFancy {
+                position,
+                z_order: z_order.try_into().ok().expect("Must be i32 convertible"),
+                rotation: rotation.into(),
+                color,
+                glyph: glyph.try_into().ok().expect("Must be u16 convertible"),
+                scale,
+            },
+        ));
+        self
+    }
 }
 
 /// Represents a buffered drawing command that can be asynchronously submitted to the drawing
@@ -773,5 +798,13 @@ pub enum DrawCommand {
     SetAllAlpha {
         fg: f32,
         bg: f32,
+    },
+    SetFancy {
+        position: PointF,
+        z_order: i32,
+        rotation: Radians,
+        color: ColorPair,
+        glyph: u16,
+        scale: PointF,
     },
 }

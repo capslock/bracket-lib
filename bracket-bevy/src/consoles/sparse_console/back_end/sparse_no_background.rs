@@ -1,5 +1,5 @@
 use super::SparseConsoleBackend;
-use crate::consoles::{scaler::FontScaler, BracketMesh, ScreenScaler, SparseConsole};
+use crate::consoles::{scaler::FontScaler, BracketMesh, ScreenScaler, SparseConsole, Tile};
 use bevy::{
     prelude::*,
     render::mesh::{Indices, PrimitiveTopology},
@@ -15,8 +15,8 @@ pub(crate) struct SparseBackendNoBackground {
 }
 
 impl SparseBackendNoBackground {
-    pub(crate) fn new(
-        parent: &SparseConsole,
+    pub(crate) fn new<T: Tile>(
+        parent: &SparseConsole<T>,
         meshes: &mut Assets<Mesh>,
         chars_per_row: u16,
         n_rows: u16,
@@ -37,7 +37,11 @@ impl SparseBackendNoBackground {
         back_end
     }
 
-    pub fn build_mesh(&self, parent: &SparseConsole, screen_scaler: &ScreenScaler) -> Mesh {
+    pub fn build_mesh<T: Tile>(
+        &self,
+        parent: &SparseConsole<T>,
+        screen_scaler: &ScreenScaler,
+    ) -> Mesh {
         let n_elements = parent.terminal.len();
         let mut vertices: Vec<[f32; 3]> = Vec::with_capacity(n_elements * 4);
         let mut normals: Vec<[f32; 3]> = Vec::with_capacity(n_elements * 4);
@@ -48,9 +52,11 @@ impl SparseBackendNoBackground {
         let scale = screen_scaler.calc_step(self.width, self.height);
         let top_left = screen_scaler.top_left();
 
-        for (x, y, chr) in parent.terminal.iter() {
-            let actual_y = self.height as i32 - 1 - y;
-            let screen_x = top_left.0 + (*x as f32 * scale.0);
+        for tile in parent.terminal.iter() {
+            let (x, y) = tile.get_position();
+            let chr = tile.get_glyph();
+            let actual_y = self.height as f32 - 1.0 - (*y).into() as f32;
+            let screen_x = top_left.0 + ((*x).into() as f32 * scale.0);
             let screen_y = top_left.1 + (actual_y as f32 * scale.1);
 
             vertices.push([screen_x, screen_y, 0.5]);
@@ -93,10 +99,10 @@ impl SparseBackendNoBackground {
     }
 }
 
-impl SparseConsoleBackend for SparseBackendNoBackground {
+impl<T: Tile> SparseConsoleBackend<T> for SparseBackendNoBackground {
     fn new_mesh(
         &self,
-        front_end: &SparseConsole,
+        front_end: &SparseConsole<T>,
         meshes: &mut Assets<Mesh>,
         scaler: &ScreenScaler,
     ) -> Handle<Mesh> {
