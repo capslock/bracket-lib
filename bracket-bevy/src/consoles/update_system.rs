@@ -70,7 +70,7 @@ pub(crate) fn update_timing(mut ctx: ResMut<BracketContext>, diagnostics: Res<Di
 
     if let Some(frame_time) = diagnostics.get(FrameTimeDiagnosticsPlugin::FRAME_TIME) {
         if let Some(frame_time_avg) = frame_time.measurement() {
-            ctx.frame_time_ms = (frame_time_avg.value * 1000.0).round();
+            ctx.frame_time_ms = frame_time_avg.value.round();
         }
     }
 }
