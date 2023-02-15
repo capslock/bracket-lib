@@ -15,6 +15,9 @@ pub struct TextBlock {
     bg: RGBA,
     buffer: Vec<TerminalGlyph>,
     cursor: (i32, i32),
+    expand: bool,
+    max_width: i32,
+    max_height: i32,
 }
 
 #[derive(Debug, Clone)]
@@ -44,7 +47,28 @@ impl TextBlock {
                 width as usize * height as usize
             ],
             cursor: (0, 0),
+            expand: false,
+            max_width: 0,
+            max_height: 0,
         }
+    }
+
+    pub fn new_autoexpand(x: i32, y: i32, width: i32, height: i32) -> TextBlock {
+        let mut tb = Self::new(x, y, width, height);
+        tb.expand = true;
+        tb
+    }
+
+    fn push_line(&mut self) {
+        self.height += 1;
+        self.buffer.resize(
+            self.buffer.len() + self.width as usize,
+            TerminalGlyph {
+                glyph: 0,
+                foreground: RGBA::from_f32(1.0, 1.0, 1.0, 1.0).as_rgba_f32(),
+                background: RGBA::from_f32(0.0, 0.0, 0.0, 1.0).as_rgba_f32(),
+            },
+        )
     }
 
     pub fn fg<COLOR>(&mut self, fg: RGB)
@@ -76,6 +100,14 @@ impl TextBlock {
     pub fn set_origin(&mut self, origin: Point) {
         self.x = origin.x;
         self.y = origin.y;
+    }
+
+    pub fn get_min_bounding_rect(&self) -> Rect {
+        Rect::with_size(self.x, self.y, self.max_width, self.max_height + 1)
+    }
+
+    pub fn get_rect(&self) -> Rect {
+        Rect::with_size(self.x, self.y, self.width, self.height)
     }
 
     fn at(&self, x: i32, y: i32) -> usize {
@@ -133,17 +165,19 @@ impl TextBlock {
                 CommandType::Text { block: t } => {
                     for c in t {
                         let idx = self.at(self.cursor.0, self.cursor.1);
-                        if idx < self.buffer.len() {
-                            self.buffer[idx].glyph = *c;
-                            self.buffer[idx].foreground = self.fg.as_rgba_f32();
-                            self.buffer[idx].background = self.bg.as_rgba_f32();
-                            self.cursor.0 += 1;
-                            if self.cursor.0 >= self.width {
-                                self.cursor.0 = 0;
-                                self.cursor.1 += 1;
+                        if idx >= self.buffer.len() {
+                            if !self.expand {
+                                return Err(OutOfSpace);
                             }
-                        } else {
-                            return Err(OutOfSpace);
+                            self.push_line()
+                        }
+                        self.buffer[idx].glyph = *c;
+                        self.buffer[idx].foreground = self.fg.as_rgba_f32();
+                        self.buffer[idx].background = self.bg.as_rgba_f32();
+                        self.cursor.0 += 1;
+                        if self.cursor.0 >= self.width {
+                            self.cursor.0 = 0;
+                            self.cursor.1 += 1;
                         }
                     }
                 }
@@ -154,17 +188,19 @@ impl TextBlock {
                     self.cursor.0 = (self.width / 2) - half_width;
                     for c in t {
                         let idx = self.at(self.cursor.0, self.cursor.1);
-                        if idx < self.buffer.len() {
-                            self.buffer[idx].glyph = *c;
-                            self.buffer[idx].foreground = self.fg.as_rgba_f32();
-                            self.buffer[idx].background = self.bg.as_rgba_f32();
-                            self.cursor.0 += 1;
-                            if self.cursor.0 >= self.width {
-                                self.cursor.0 = 0;
-                                self.cursor.1 += 1;
+                        if idx >= self.buffer.len() {
+                            if !self.expand {
+                                return Err(OutOfSpace);
                             }
-                        } else {
-                            return Err(OutOfSpace);
+                            self.push_line()
+                        }
+                        self.buffer[idx].glyph = *c;
+                        self.buffer[idx].foreground = self.fg.as_rgba_f32();
+                        self.buffer[idx].background = self.bg.as_rgba_f32();
+                        self.cursor.0 += 1;
+                        if self.cursor.0 >= self.width {
+                            self.cursor.0 = 0;
+                            self.cursor.1 += 1;
                         }
                     }
                 }
@@ -192,17 +228,19 @@ impl TextBlock {
                         }
                         for c in chrs {
                             let idx = self.at(self.cursor.0, self.cursor.1);
-                            if idx < self.buffer.len() {
-                                self.buffer[idx].glyph = c;
-                                self.buffer[idx].foreground = self.fg.as_rgba_f32();
-                                self.buffer[idx].background = self.bg.as_rgba_f32();
-                                self.cursor.0 += 1;
-                                if self.cursor.0 >= self.width {
-                                    self.cursor.0 = 0;
-                                    self.cursor.1 += 1;
+                            if idx >= self.buffer.len() {
+                                if !self.expand {
+                                    return Err(OutOfSpace);
                                 }
-                            } else {
-                                return Err(OutOfSpace);
+                                self.push_line()
+                            }
+                            self.buffer[idx].glyph = c;
+                            self.buffer[idx].foreground = self.fg.as_rgba_f32();
+                            self.buffer[idx].background = self.bg.as_rgba_f32();
+                            self.cursor.0 += 1;
+                            if self.cursor.0 >= self.width {
+                                self.cursor.0 = 0;
+                                self.cursor.1 += 1;
                             }
                         }
                     }
