@@ -51,7 +51,6 @@ impl SparseBackendNoBackground {
         let mut index_count = 0;
         let scale = screen_scaler.calc_step(self.width, self.height);
         let top_left = screen_scaler.top_left();
-
         for tile in parent.terminal.iter() {
             let (x, y) = tile.get_position();
             let chr = tile.get_glyph();

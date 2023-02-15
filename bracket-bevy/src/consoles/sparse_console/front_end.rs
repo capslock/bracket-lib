@@ -25,6 +25,7 @@ where
     fn get_glyph(&self) -> &TerminalGlyph;
     fn scale(&self) -> PointF;
     fn rotation(&self) -> Radians;
+    fn z_order(&self) -> i32;
 }
 
 pub(crate) struct FlexiTile {
@@ -83,6 +84,11 @@ impl Tile for FlexiTile {
     fn rotation(&self) -> Radians {
         Radians::new(self.rotation)
     }
+
+    #[inline(always)]
+    fn z_order(&self) -> i32 {
+        self.z_order
+    }
 }
 
 #[derive(Default)]
@@ -123,6 +129,11 @@ impl Tile for SparseTile {
     fn rotation(&self) -> Radians {
         Radians::new(0.0)
     }
+
+    #[inline(always)]
+    fn z_order(&self) -> i32 {
+        0
+    }
 }
 
 pub(crate) struct SparseConsole<T: Tile> {
@@ -155,6 +166,7 @@ impl<T: Tile> SparseConsole<T> {
         features: &HashSet<SparseConsoleFeatures>,
     ) {
         if !features.contains(&SparseConsoleFeatures::WithoutBackground) {
+            self.terminal.sort_by(|a, b| a.z_order().cmp(&b.z_order()));
             let back_end = SparseBackendWithBackground::new(
                 self,
                 meshes,
@@ -418,6 +430,7 @@ impl<T: Tile + 'static> ConsoleFrontEnd for SparseConsole<T> {
         meshes: &mut Assets<Mesh>,
         scaler: &ScreenScaler,
     ) -> Option<Handle<Mesh>> {
+        self.terminal.sort_by(|a, b| a.z_order().cmp(&b.z_order()));
         self.back_end
             .as_ref()
             .map(|be| be.new_mesh(self, meshes, scaler))
