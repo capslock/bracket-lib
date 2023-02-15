@@ -11,7 +11,7 @@ use bevy::{
     sprite::ColorMaterial,
 };
 use bracket_color::prelude::RGBA;
-use bracket_geometry::prelude::{Point, PointF};
+use bracket_geometry::prelude::{Point, PointF, Radians};
 
 pub(crate) trait Tile: Default + Send + Sync
 where
@@ -23,15 +23,28 @@ where
     fn get_position(&self) -> &(Self::Coord, Self::Coord);
     fn get_glyph_mut(&mut self) -> &mut TerminalGlyph;
     fn get_glyph(&self) -> &TerminalGlyph;
+    fn scale(&self) -> PointF;
+    fn rotation(&self) -> Radians;
 }
 
-#[derive(Default)]
 pub(crate) struct FlexiTile {
     pub position: (f32, f32),
     pub z_order: i32,
     pub glyph: TerminalGlyph,
     pub rotation: f32,
     pub scale: PointF,
+}
+
+impl Default for FlexiTile {
+    fn default() -> Self {
+        Self {
+            position: Default::default(),
+            z_order: Default::default(),
+            glyph: Default::default(),
+            rotation: Default::default(),
+            scale: PointF::new(1.0, 1.0),
+        }
+    }
 }
 
 impl Tile for FlexiTile {
@@ -59,6 +72,16 @@ impl Tile for FlexiTile {
     #[inline(always)]
     fn get_glyph(&self) -> &TerminalGlyph {
         &self.glyph
+    }
+
+    #[inline(always)]
+    fn scale(&self) -> PointF {
+        self.scale
+    }
+
+    #[inline(always)]
+    fn rotation(&self) -> Radians {
+        Radians::new(self.rotation)
     }
 }
 
@@ -89,6 +112,16 @@ impl Tile for SparseTile {
     #[inline(always)]
     fn get_glyph(&self) -> &TerminalGlyph {
         &self.glyph
+    }
+
+    #[inline(always)]
+    fn scale(&self) -> PointF {
+        PointF::new(1.0, 1.0)
+    }
+
+    #[inline(always)]
+    fn rotation(&self) -> Radians {
+        Radians::new(0.0)
     }
 }
 

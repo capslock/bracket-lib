@@ -59,10 +59,28 @@ impl SparseBackendNoBackground {
             let screen_x = top_left.0 + ((*x).into() as f32 * scale.0);
             let screen_y = top_left.1 + (actual_y as f32 * scale.1);
 
-            vertices.push([screen_x, screen_y, 0.5]);
-            vertices.push([screen_x + scale.0, screen_y, 0.5]);
-            vertices.push([screen_x, screen_y + scale.1, 0.5]);
-            vertices.push([screen_x + scale.0, screen_y + scale.1, 0.5]);
+            let quat = bevy::math::Quat::from_rotation_z(tile.rotation().0);
+            let mut transform = bevy::prelude::Transform::from_scale(Vec3::new(
+                tile.scale().x,
+                tile.scale().y,
+                1.0,
+            ));
+            transform.rotate(quat);
+            let transform = transform.with_translation(Vec3::new(
+                screen_x + scale.0 / 2.0,
+                screen_y + scale.0 / 2.0,
+                0.0,
+            ));
+
+            let p1 = transform * Vec3::new(-scale.0 / 2.0, -scale.1 / 2.0, 0.5);
+            let p2 = transform * Vec3::new(scale.0 / 2.0, -scale.1 / 2.0, 0.5);
+            let p3 = transform * Vec3::new(-scale.0 / 2.0, scale.1 / 2.0, 0.5);
+            let p4 = transform * Vec3::new(scale.0 / 2.0, scale.1 / 2.0, 0.5);
+
+            vertices.push(p1.to_array());
+            vertices.push(p2.to_array());
+            vertices.push(p3.to_array());
+            vertices.push(p4.to_array());
             for _ in 0..4 {
                 normals.push([0.0, 1.0, 0.0]);
             }

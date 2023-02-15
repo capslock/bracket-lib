@@ -2,11 +2,7 @@ use bevy::prelude::*;
 use bracket_bevy::prelude::*;
 
 fn main() {
-    let bterm = BTermBuilder::empty()
-        .with_font("terminal8x8.png", 16, 16, (8.0, 8.0))
-        .with_named_color("blue", BLUE)
-        .with_named_color("pink", Color::PINK)
-        .with_fancy_console(0, 80, 50);
+    let bterm = BTermBuilder::simple_80x50().with_fancy_console(0, 80, 50);
 
     App::new()
         .add_plugins(DefaultPlugins)
@@ -19,7 +15,7 @@ fn main() {
 fn tick(ctx: Res<BracketContext>, mut state: ResMut<State>) {
     let mut draw_batch = ctx.new_draw_batch();
 
-    draw_batch.target(0);
+    draw_batch.target(1);
     draw_batch.cls();
 
     let simple_x = state.x as i32;
