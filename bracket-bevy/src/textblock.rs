@@ -175,9 +175,11 @@ impl TextBlock {
                         self.buffer[idx].foreground = self.fg.as_rgba_f32();
                         self.buffer[idx].background = self.bg.as_rgba_f32();
                         self.cursor.0 += 1;
+                        self.max_width = self.max_width.max(self.cursor.0);
                         if self.cursor.0 >= self.width {
                             self.cursor.0 = 0;
                             self.cursor.1 += 1;
+                            self.max_height = self.max_height.max(self.cursor.1);
                         }
                     }
                 }
@@ -198,9 +200,11 @@ impl TextBlock {
                         self.buffer[idx].foreground = self.fg.as_rgba_f32();
                         self.buffer[idx].background = self.bg.as_rgba_f32();
                         self.cursor.0 += 1;
+                        self.max_width = self.max_width.max(self.cursor.0);
                         if self.cursor.0 >= self.width {
                             self.cursor.0 = 0;
                             self.cursor.1 += 1;
+                            self.max_height = self.max_height.max(self.cursor.1);
                         }
                     }
                 }
@@ -208,6 +212,7 @@ impl TextBlock {
                 CommandType::NewLine {} => {
                     self.cursor.0 = 0;
                     self.cursor.1 += 1;
+                    self.max_height = self.max_height.max(self.cursor.1);
                 }
 
                 CommandType::Foreground { col } => self.fg = *col,
@@ -225,6 +230,7 @@ impl TextBlock {
                         if self.cursor.0 + chrs.len() as i32 >= self.width {
                             self.cursor.0 = 0;
                             self.cursor.1 += 1;
+                            self.max_height = self.max_height.max(self.cursor.1);
                         }
                         for c in chrs {
                             let idx = self.at(self.cursor.0, self.cursor.1);
@@ -238,9 +244,11 @@ impl TextBlock {
                             self.buffer[idx].foreground = self.fg.as_rgba_f32();
                             self.buffer[idx].background = self.bg.as_rgba_f32();
                             self.cursor.0 += 1;
+                            self.max_width = self.max_width.max(self.cursor.0);
                             if self.cursor.0 >= self.width {
                                 self.cursor.0 = 0;
                                 self.cursor.1 += 1;
+                                self.max_height = self.max_height.max(self.cursor.1);
                             }
                         }
                     }
