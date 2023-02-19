@@ -14,6 +14,12 @@ pub enum TerminalLayer {
         height: i32,
         features: HashSet<SparseConsoleFeatures>,
     },
+    Fancy {
+        font_index: usize,
+        width: i32,
+        height: i32,
+        features: HashSet<SparseConsoleFeatures>,
+    },
 }
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone, Copy)]

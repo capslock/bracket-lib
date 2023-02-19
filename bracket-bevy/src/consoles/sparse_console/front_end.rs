@@ -11,19 +11,142 @@ use bevy::{
     sprite::ColorMaterial,
 };
 use bracket_color::prelude::RGBA;
-use bracket_geometry::prelude::Point;
+use bracket_geometry::prelude::{Point, PointF, Radians};
 
-pub(crate) struct SparseConsole {
+pub(crate) trait Tile: Default + Send + Sync
+where
+    Self::Coord: Into<f64> + From<i16> + Copy,
+{
+    type Coord;
+
+    fn new(position: (Self::Coord, Self::Coord), glyph: TerminalGlyph) -> Self;
+    fn get_position(&self) -> &(Self::Coord, Self::Coord);
+    fn get_glyph_mut(&mut self) -> &mut TerminalGlyph;
+    fn get_glyph(&self) -> &TerminalGlyph;
+    fn scale(&self) -> PointF;
+    fn rotation(&self) -> Radians;
+    fn z_order(&self) -> i32;
+}
+
+pub(crate) struct FlexiTile {
+    pub position: (f32, f32),
+    pub z_order: i32,
+    pub glyph: TerminalGlyph,
+    pub rotation: f32,
+    pub scale: PointF,
+}
+
+impl Default for FlexiTile {
+    fn default() -> Self {
+        Self {
+            position: Default::default(),
+            z_order: Default::default(),
+            glyph: Default::default(),
+            rotation: Default::default(),
+            scale: PointF::new(1.0, 1.0),
+        }
+    }
+}
+
+impl Tile for FlexiTile {
+    type Coord = f32;
+
+    #[inline(always)]
+    fn new(position: (f32, f32), glyph: TerminalGlyph) -> Self {
+        Self {
+            position,
+            glyph,
+            ..Self::default()
+        }
+    }
+
+    #[inline(always)]
+    fn get_position(&self) -> &(f32, f32) {
+        &self.position
+    }
+
+    #[inline(always)]
+    fn get_glyph_mut(&mut self) -> &mut TerminalGlyph {
+        &mut self.glyph
+    }
+
+    #[inline(always)]
+    fn get_glyph(&self) -> &TerminalGlyph {
+        &self.glyph
+    }
+
+    #[inline(always)]
+    fn scale(&self) -> PointF {
+        self.scale
+    }
+
+    #[inline(always)]
+    fn rotation(&self) -> Radians {
+        Radians::new(self.rotation)
+    }
+
+    #[inline(always)]
+    fn z_order(&self) -> i32 {
+        self.z_order
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct SparseTile {
+    pub position: (i32, i32),
+    pub glyph: TerminalGlyph,
+}
+
+impl Tile for SparseTile {
+    type Coord = i32;
+
+    #[inline(always)]
+    fn new(position: (i32, i32), glyph: TerminalGlyph) -> Self {
+        Self { position, glyph }
+    }
+
+    #[inline(always)]
+    fn get_position(&self) -> &(i32, i32) {
+        &self.position
+    }
+
+    #[inline(always)]
+    fn get_glyph_mut(&mut self) -> &mut TerminalGlyph {
+        &mut self.glyph
+    }
+
+    #[inline(always)]
+    fn get_glyph(&self) -> &TerminalGlyph {
+        &self.glyph
+    }
+
+    #[inline(always)]
+    fn scale(&self) -> PointF {
+        PointF::new(1.0, 1.0)
+    }
+
+    #[inline(always)]
+    fn rotation(&self) -> Radians {
+        Radians::new(0.0)
+    }
+
+    #[inline(always)]
+    fn z_order(&self) -> i32 {
+        0
+    }
+}
+
+pub(crate) struct SparseConsole<T: Tile> {
     pub(crate) font_index: usize,
     pub(crate) width: i32,
     pub(crate) height: i32,
-    pub(crate) terminal: Vec<(i32, i32, TerminalGlyph)>,
-    back_end: Option<Box<dyn SparseConsoleBackend>>,
+    pub(crate) terminal: Vec<T>,
+    back_end: Option<Box<dyn SparseConsoleBackend<T>>>,
     clipping: Option<Rect>,
     mouse_chars: (i32, i32),
 }
 
-impl SparseConsole {
+impl<T: Tile> SparseConsole<T> {
     pub fn new(font_index: usize, width: i32, height: i32) -> Self {
         Self {
             font_index,
@@ -43,6 +166,7 @@ impl SparseConsole {
         features: &HashSet<SparseConsoleFeatures>,
     ) {
         if !features.contains(&SparseConsoleFeatures::WithoutBackground) {
+            self.terminal.sort_by(|a, b| a.z_order().cmp(&b.z_order()));
             let back_end = SparseBackendWithBackground::new(
                 self,
                 meshes,
@@ -79,7 +203,34 @@ impl SparseConsole {
     }
 }
 
-impl ConsoleFrontEnd for SparseConsole {
+impl SparseConsole<FlexiTile> {
+    // Insert a single tile with "fancy" attributes
+    #[allow(clippy::too_many_arguments)]
+    pub fn set_fancy(
+        &mut self,
+        position: PointF,
+        z_order: i32,
+        rotation: f32,
+        scale: PointF,
+        fg: RGBA,
+        bg: RGBA,
+        glyph: FontCharType,
+    ) {
+        self.terminal.push(FlexiTile {
+            position: (position.x, position.y),
+            z_order,
+            glyph: TerminalGlyph {
+                glyph,
+                foreground: fg.as_rgba_f32(),
+                background: bg.as_rgba_f32(),
+            },
+            rotation,
+            scale,
+        });
+    }
+}
+
+impl<T: Tile + 'static> ConsoleFrontEnd for SparseConsole<T> {
     fn get_char_size(&self) -> (i32, i32) {
         (self.width, self.height)
     }
@@ -120,14 +271,13 @@ impl ConsoleFrontEnd for SparseConsole {
     fn cls_bg(&mut self, color: RGBA) {
         self.terminal
             .iter_mut()
-            .for_each(|c| c.2.background = color.as_rgba_f32());
+            .for_each(|c| c.get_glyph_mut().background = color.as_rgba_f32());
     }
 
     fn set(&mut self, x: i32, y: i32, fg: RGBA, bg: RGBA, glyph: FontCharType) {
         if self.try_at(x, y).is_some() {
-            self.terminal.push((
-                x,
-                y,
+            self.terminal.push(T::new(
+                ((x as i16).into(), (y as i16).into()),
                 TerminalGlyph {
                     glyph,
                     foreground: fg.as_rgba_f32(),
@@ -257,20 +407,20 @@ impl ConsoleFrontEnd for SparseConsole {
 
     fn set_all_alpha(&mut self, fg: f32, bg: f32) {
         self.terminal.iter_mut().for_each(|t| {
-            t.2.foreground[3] = fg;
-            t.2.background[3] = bg;
+            t.get_glyph_mut().foreground[3] = fg;
+            t.get_glyph_mut().background[3] = bg;
         });
     }
 
     fn set_all_bg_alpha(&mut self, alpha: f32) {
         self.terminal.iter_mut().for_each(|t| {
-            t.2.background[3] = alpha;
+            t.get_glyph_mut().background[3] = alpha;
         });
     }
 
     fn set_all_fg_alpha(&mut self, alpha: f32) {
         self.terminal.iter_mut().for_each(|t| {
-            t.2.foreground[3] = alpha;
+            t.get_glyph_mut().foreground[3] = alpha;
         });
     }
 
@@ -280,6 +430,7 @@ impl ConsoleFrontEnd for SparseConsole {
         meshes: &mut Assets<Mesh>,
         scaler: &ScreenScaler,
     ) -> Option<Handle<Mesh>> {
+        self.terminal.sort_by(|a, b| a.z_order().cmp(&b.z_order()));
         self.back_end
             .as_ref()
             .map(|be| be.new_mesh(self, meshes, scaler))
@@ -303,5 +454,13 @@ impl ConsoleFrontEnd for SparseConsole {
 
     fn get_font_index(&self) -> usize {
         self.font_index
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
     }
 }

@@ -2,7 +2,7 @@ mod sparse_no_background;
 mod sparse_with_background;
 use crate::consoles::ScreenScaler;
 
-use super::SparseConsole;
+use super::{SparseConsole, Tile};
 use bevy::{
     prelude::{Assets, Commands, Handle, Mesh},
     sprite::ColorMaterial,
@@ -10,10 +10,10 @@ use bevy::{
 pub(crate) use sparse_no_background::*;
 pub(crate) use sparse_with_background::*;
 
-pub(crate) trait SparseConsoleBackend: Sync + Send {
+pub(crate) trait SparseConsoleBackend<T: Tile>: Sync + Send {
     fn new_mesh(
         &self,
-        front_end: &SparseConsole,
+        front_end: &SparseConsole<T>,
         meshes: &mut Assets<Mesh>,
         scaler: &ScreenScaler,
     ) -> Handle<Mesh>;

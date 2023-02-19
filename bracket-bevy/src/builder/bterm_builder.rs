@@ -7,7 +7,7 @@ use crate::{
 };
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{CoreStage, Plugin, SystemStage, Resource},
+    prelude::{CoreStage, IntoSystemDescriptor, Plugin, Resource, SystemStage},
     utils::HashMap,
 };
 use bracket_color::prelude::RGBA;
@@ -107,6 +107,9 @@ impl BTermBuilder {
                         features.insert(crate::SparseConsoleFeatures::WithoutBackground);
                     }
                 }
+                TerminalLayer::Fancy { features, .. } => {
+                    features.insert(crate::SparseConsoleFeatures::WithoutBackground);
+                }
             }
         }
         self
@@ -172,6 +175,18 @@ impl BTermBuilder {
         });
         self
     }
+
+    pub fn with_fancy_console(mut self, font_index: usize, width: i32, height: i32) -> Self {
+        let mut features = HashSet::new();
+        features.insert(crate::SparseConsoleFeatures::WithoutBackground);
+        self.layers.push(TerminalLayer::Fancy {
+            font_index,
+            width,
+            height,
+            features,
+        });
+        self
+    }
 }
 
 impl Plugin for BTermBuilder {
@@ -192,8 +207,8 @@ impl Plugin for BTermBuilder {
                 "bracket_term_diagnostics",
                 SystemStage::single_threaded(),
             );
-            app.add_system(update_timing);
-            app.add_system(update_mouse_position);
+            app.add_system_to_stage("bracket_term_diagnostics", update_timing);
+            app.add_system_to_stage("bracket_term_diagnostics", update_mouse_position);
         }
         app.add_stage_after(
             CoreStage::Update,
@@ -201,12 +216,15 @@ impl Plugin for BTermBuilder {
             SystemStage::single_threaded(),
         );
         if self.auto_apply_batches {
-            app.add_system(apply_all_batches);
+            app.add_system_to_stage(
+                "bracket_term_update",
+                apply_all_batches.before(update_consoles),
+            );
         }
-        app.add_system(update_consoles);
-        app.add_system(replace_meshes);
-        app.add_system(window_resize);
-        app.add_system(fix_images);
+        app.add_system_to_stage("bracket_term_update", update_consoles);
+        app.add_system_to_stage("bracket_term_update", replace_meshes.after(update_consoles));
+        app.add_system_to_stage("bracket_term_update", window_resize.after(replace_meshes));
+        app.add_system_to_stage("bracket_term_update", fix_images.after(window_resize));
         if self.with_random_number_generator {
             app.insert_resource(RandomNumbers::new());
         }

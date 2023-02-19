@@ -1,6 +1,7 @@
 use crate::{
-    consoles::SparseConsole, fonts::FontStore, BTermBuilder, BracketContext, SimpleConsole,
-    TerminalLayer,
+    consoles::{FlexiTile, SparseConsole, SparseTile},
+    fonts::FontStore,
+    BTermBuilder, BracketContext, SimpleConsole, TerminalLayer,
 };
 use bevy::{
     prelude::{
@@ -71,8 +72,23 @@ pub(crate) fn load_terminals(
                 height,
                 features,
             } => {
-                let mut console = SparseConsole::new(*font_index, *width, *height);
+                let mut console = SparseConsole::<SparseTile>::new(*font_index, *width, *height);
                 console.initialize(&new_context.fonts, &mut meshes, features);
+                console.spawn(
+                    &mut commands,
+                    new_context.fonts[*font_index].material_handle.clone(),
+                    idx,
+                );
+                new_context.terminals.lock().push(Box::new(console));
+            }
+            TerminalLayer::Fancy {
+                font_index,
+                width,
+                height,
+                features,
+            } => {
+                let mut console = SparseConsole::<FlexiTile>::new(*font_index, *width, *height);
+                console.initialize(&new_context.fonts, &mut meshes, &features);
                 console.spawn(
                     &mut commands,
                     new_context.fonts[*font_index].material_handle.clone(),
