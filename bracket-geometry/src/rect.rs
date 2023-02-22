@@ -7,8 +7,6 @@ use std::ops;
 use bevy::ecs::reflect::ReflectComponent;
 #[cfg(all(feature = "bevy", feature = "serde"))]
 use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
-#[cfg(feature = "bevy")]
-use bevy::reflect::Reflect;
 
 /// Defines a two-dimensional rectangle.
 #[cfg_attr(

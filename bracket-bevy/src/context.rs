@@ -3,7 +3,7 @@ use crate::{
     fonts::FontStore,
     FontCharType, TerminalScalingMode,
 };
-use bevy::{prelude::Resource, sprite::Mesh2dHandle, utils::HashMap};
+use bevy::{prelude::Resource, utils::HashMap};
 use bracket_color::prelude::RGBA;
 use bracket_geometry::prelude::{Point, PointF, Radians, Rect};
 use parking_lot::Mutex;
@@ -16,7 +16,6 @@ pub struct BracketContext {
     pub(crate) color_palette: HashMap<String, RGBA>,
     pub fps: f64,
     pub frame_time_ms: f64,
-    pub(crate) mesh_replacement: Vec<(Mesh2dHandle, Mesh2dHandle, bool)>,
     pub(crate) scaling_mode: TerminalScalingMode,
     command_buffers: Mutex<Vec<(usize, DrawBatch)>>,
     mouse_pixels: (f32, f32),
@@ -31,7 +30,6 @@ impl BracketContext {
             color_palette,
             fps: 0.0,
             frame_time_ms: 0.0,
-            mesh_replacement: Vec::new(),
             scaling_mode: TerminalScalingMode::Stretch,
             command_buffers: Mutex::new(Vec::new()),
             mouse_pixels: (0.0, 0.0),

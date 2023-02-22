@@ -1,13 +1,14 @@
 use crate::{
     consoles::{
-        apply_all_batches, default_gutter_size, replace_meshes, update_mouse_position,
-        update_timing, window_resize, ScreenScaler,
+        apply_all_batches, default_gutter_size, update_mouse_position, update_timing,
+        window_resize, ScreenScaler,
     },
     fix_images, load_terminals, update_consoles, RandomNumbers, TerminalBuilderFont, TerminalLayer,
 };
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::{CoreStage, IntoSystemDescriptor, Plugin, Resource, SystemStage},
+    prelude::*,
+    transform::TransformSystem,
     utils::HashMap,
 };
 use bracket_color::prelude::RGBA;
@@ -189,9 +190,17 @@ impl BTermBuilder {
     }
 }
 
+#[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
+pub enum BracketTermSet {
+    Startup,
+    Diagnostics,
+    UpdateFlush,
+    PostUpdate,
+}
+
 impl Plugin for BTermBuilder {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(bevy::prelude::Msaa { samples: 1 });
+        app.insert_resource(bevy::prelude::Msaa::Off);
         if self.with_diagnostics {
             app.add_plugin(FrameTimeDiagnosticsPlugin);
         }
@@ -200,31 +209,35 @@ impl Plugin for BTermBuilder {
         }
         app.insert_resource(self.clone());
         app.insert_resource(ScreenScaler::new(self.gutter));
-        app.add_startup_system(load_terminals);
-        if self.with_diagnostics {
-            app.add_stage_before(
-                CoreStage::Update,
-                "bracket_term_diagnostics",
-                SystemStage::single_threaded(),
-            );
-            app.add_system_to_stage("bracket_term_diagnostics", update_timing);
-            app.add_system_to_stage("bracket_term_diagnostics", update_mouse_position);
-        }
-        app.add_stage_after(
-            CoreStage::Update,
-            "bracket_term_update",
-            SystemStage::single_threaded(),
+        app.add_startup_systems(
+            (load_terminals, apply_system_buffers)
+                .chain()
+                .in_set(BracketTermSet::Startup),
         );
-        if self.auto_apply_batches {
-            app.add_system_to_stage(
-                "bracket_term_update",
-                apply_all_batches.before(update_consoles),
+        if self.with_diagnostics {
+            app.configure_set(BracketTermSet::Diagnostics.in_base_set(CoreSet::PreUpdate));
+            app.add_systems(
+                ((update_timing, update_mouse_position).chain())
+                    .in_set(BracketTermSet::Diagnostics),
             );
         }
-        app.add_system_to_stage("bracket_term_update", update_consoles);
-        app.add_system_to_stage("bracket_term_update", replace_meshes.after(update_consoles));
-        app.add_system_to_stage("bracket_term_update", window_resize.after(replace_meshes));
-        app.add_system_to_stage("bracket_term_update", fix_images.after(window_resize));
+        if self.auto_apply_batches {
+            app.configure_set(BracketTermSet::UpdateFlush.in_base_set(CoreSet::UpdateFlush));
+            app.add_system(apply_all_batches.in_set(BracketTermSet::UpdateFlush));
+        }
+        app.configure_set(
+            BracketTermSet::PostUpdate
+                .in_base_set(CoreSet::PostUpdate)
+                .before(TransformSystem::TransformPropagate),
+        );
+        app.add_systems(
+            (
+                update_consoles,
+                window_resize.after(update_consoles),
+                fix_images.after(window_resize),
+            )
+                .in_set(BracketTermSet::PostUpdate),
+        );
         if self.with_random_number_generator {
             app.insert_resource(RandomNumbers::new());
         }

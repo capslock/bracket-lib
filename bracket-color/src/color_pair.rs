@@ -4,8 +4,6 @@ use crate::prelude::RGBA;
 use bevy::ecs::reflect::ReflectComponent;
 #[cfg(all(feature = "bevy", feature = "serde"))]
 use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
-#[cfg(feature = "bevy")]
-use bevy::reflect::Reflect;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
