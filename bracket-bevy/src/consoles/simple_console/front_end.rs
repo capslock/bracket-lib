@@ -120,9 +120,7 @@ impl ConsoleFrontEnd for SimpleConsole {
     }
 
     fn cls(&mut self) {
-        self.terminal
-            .iter_mut()
-            .for_each(|c| *c = TerminalGlyph::default());
+        self.terminal.fill(TerminalGlyph::default());
     }
 
     fn cls_bg(&mut self, color: RGBA) {

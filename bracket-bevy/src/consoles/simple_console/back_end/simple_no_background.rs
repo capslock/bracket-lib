@@ -101,7 +101,11 @@ impl SimpleConsoleBackend for SimpleBackendNoBackground {
         meshes: &mut Assets<Mesh>,
         scaler: &ScreenScaler,
     ) -> Handle<Mesh> {
-        meshes.add(self.build_mesh(front_end, scaler))
+        if let Some(handle) = &self.mesh_handle {
+            meshes.set(handle.clone_weak(), self.build_mesh(front_end, scaler))
+        } else {
+            meshes.add(self.build_mesh(front_end, scaler))
+        }
     }
 
     fn spawn(&self, commands: &mut Commands, material: Handle<ColorMaterial>, idx: usize) {
@@ -109,7 +113,7 @@ impl SimpleConsoleBackend for SimpleBackendNoBackground {
             commands
                 .spawn(MaterialMesh2dBundle {
                     mesh: mesh_handle.clone().into(),
-                    transform: Transform::default(),
+                    transform: Transform::from_translation(Vec3::new(0.0, 0.0, idx as f32 / 10.0)),
                     material,
                     ..default()
                 })

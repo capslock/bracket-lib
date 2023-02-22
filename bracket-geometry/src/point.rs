@@ -9,8 +9,6 @@ pub type PointF = Vec2;
 use bevy::ecs::reflect::ReflectComponent;
 #[cfg(all(feature = "bevy", feature = "serde"))]
 use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
-#[cfg(feature = "bevy")]
-use bevy::reflect::Reflect;
 
 #[cfg_attr(
     feature = "bevy",

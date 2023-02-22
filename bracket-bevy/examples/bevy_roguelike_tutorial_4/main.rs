@@ -1,4 +1,4 @@
-use bevy::{prelude::*, time::FixedTimestep};
+use bevy::prelude::*;
 use bracket_bevy::prelude::*;
 use std::cmp::{max, min};
 
@@ -17,12 +17,8 @@ fn main() {
         .add_plugin(BTermBuilder::simple_80x50().with_random_number_generator(true))
         .add_startup_system(setup)
         .add_system(draw_map)
-        .add_system_set(
-            SystemSet::default()
-                .before(draw_map)
-                .with_run_criteria(FixedTimestep::step(0.1))
-                .with_system(player_input),
-        )
+        .insert_resource(FixedTime::new_from_secs(0.1))
+        .add_system_to_schedule(CoreSchedule::FixedUpdate, player_input)
         .run();
 }
 
