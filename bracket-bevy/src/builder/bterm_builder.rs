@@ -217,7 +217,8 @@ impl Plugin for BTermBuilder {
         if self.with_diagnostics {
             app.configure_set(BracketTermSet::Diagnostics.in_base_set(CoreSet::PreUpdate));
             app.add_systems(
-                ((update_timing, update_mouse_position).chain())
+                (update_timing, update_mouse_position)
+                    .chain()
                     .in_set(BracketTermSet::Diagnostics),
             );
         }
@@ -231,11 +232,8 @@ impl Plugin for BTermBuilder {
                 .before(TransformSystem::TransformPropagate),
         );
         app.add_systems(
-            (
-                update_consoles,
-                window_resize.after(update_consoles),
-                fix_images.after(window_resize),
-            )
+            (update_consoles, window_resize, fix_images)
+                .chain()
                 .in_set(BracketTermSet::PostUpdate),
         );
         if self.with_random_number_generator {

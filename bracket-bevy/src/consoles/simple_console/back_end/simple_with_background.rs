@@ -151,7 +151,7 @@ impl SimpleConsoleBackend for SimpleBackendWithBackground {
             commands
                 .spawn(MaterialMesh2dBundle {
                     mesh: mesh_handle.clone().into(),
-                    transform: Transform::from_translation(Vec3::new(0.0, 0.0, idx as f32)),
+                    transform: Transform::from_translation(Vec3::new(0.0, 0.0, idx as f32 / 10.0)),
                     material,
                     ..default()
                 })
