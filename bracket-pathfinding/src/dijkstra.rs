@@ -1,5 +1,5 @@
 use bracket_algorithm_traits::prelude::BaseMap;
-#[cfg(feature = "threaded")]
+#[cfg(all(feature = "threaded", not(target_arch = "wasm32")))]
 use rayon::prelude::*;
 #[allow(unused_imports)]
 use smallvec::SmallVec;
@@ -19,7 +19,7 @@ pub struct DijkstraMap {
 }
 
 /// Used internally when constructing maps in parallel
-#[cfg(feature = "threaded")]
+#[cfg(all(feature = "threaded", not(target_arch = "wasm32")))]
 struct ParallelDm {
     map: Vec<f32>,
     max_depth: f32,
@@ -111,17 +111,17 @@ impl DijkstraMap {
     }
 
     /// Clears the Dijkstra map. Uses a parallel for each for performance.
-    #[cfg(feature = "threaded")]
+    #[cfg(all(feature = "threaded", not(target_arch = "wasm32")))]
     pub fn clear(dm: &mut DijkstraMap) {
         dm.map.par_iter_mut().for_each(|x| *x = MAX);
     }
 
-    #[cfg(not(feature = "threaded"))]
+    #[cfg(any(not(feature = "threaded"), target_arch = "wasm32"))]
     pub fn clear(dm: &mut DijkstraMap) {
         dm.map.iter_mut().for_each(|x| *x = MAX);
     }
 
-    #[cfg(feature = "threaded")]
+    #[cfg(all(feature = "threaded", not(target_arch = "wasm32")))]
     fn build_helper(dm: &mut DijkstraMap, starts: &[usize], map: &dyn BaseMap) -> RunThreaded {
         if starts.len() >= THREADED_REQUIRED_STARTS {
             DijkstraMap::build_parallel(dm, starts, map);
@@ -130,7 +130,7 @@ impl DijkstraMap {
         RunThreaded::False
     }
 
-    #[cfg(not(feature = "threaded"))]
+    #[cfg(any(not(feature = "threaded"), target_arch = "wasm32"))]
     fn build_helper(_dm: &mut DijkstraMap, _starts: &[usize], _map: &dyn BaseMap) -> RunThreaded {
         RunThreaded::False
     }
@@ -204,7 +204,7 @@ impl DijkstraMap {
     }
 
     /// Implementation of Parallel Dijkstra.
-    #[cfg(feature = "threaded")]
+    #[cfg(all(feature = "threaded", not(target_arch = "wasm32")))]
     fn build_parallel(dm: &mut DijkstraMap, starts: &[usize], map: &dyn BaseMap) {
         let mapsize: usize = (dm.size_x * dm.size_y) as usize;
         let mut layers: Vec<ParallelDm> = Vec::with_capacity(starts.len());
@@ -262,7 +262,7 @@ impl DijkstraMap {
     /// Helper for traversing maps as path-finding. Provides the index of the lowest available
     /// exit from the specified position index, or None if there isn't one.
     /// You would use this for pathing TOWARDS a starting node.
-    #[cfg(feature = "threaded")]
+    #[cfg(all(feature = "threaded", not(target_arch = "wasm32")))]
     pub fn find_lowest_exit(dm: &DijkstraMap, position: usize, map: &dyn BaseMap) -> Option<usize> {
         let mut exits = map.get_available_exits(position);
 
@@ -279,7 +279,7 @@ impl DijkstraMap {
         Some(exits[0].0)
     }
 
-    #[cfg(not(feature = "threaded"))]
+    #[cfg(any(not(feature = "threaded"), target_arch = "wasm32"))]
     pub fn find_lowest_exit(dm: &DijkstraMap, position: usize, map: &dyn BaseMap) -> Option<usize> {
         let mut exits = map.get_available_exits(position);
 
@@ -300,7 +300,7 @@ impl DijkstraMap {
     /// exit from the specified position index, or None if there isn't one.
     /// You would use this for pathing AWAY from a starting node, for example if you are running
     /// away.
-    #[cfg(feature = "threaded")]
+    #[cfg(all(feature = "threaded", not(target_arch = "wasm32")))]
     pub fn find_highest_exit(
         dm: &DijkstraMap,
         position: usize,
@@ -321,7 +321,7 @@ impl DijkstraMap {
         Some(exits[0].0)
     }
 
-    #[cfg(not(feature = "threaded"))]
+    #[cfg(any(not(feature = "threaded"), target_arch = "wasm32"))]
     pub fn find_highest_exit(
         dm: &DijkstraMap,
         position: usize,
