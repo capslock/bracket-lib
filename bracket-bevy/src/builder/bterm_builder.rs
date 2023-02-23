@@ -3,7 +3,9 @@ use crate::{
         apply_all_batches, default_gutter_size, replace_meshes, update_mouse_position,
         update_timing, window_resize, ScreenScaler,
     },
-    fix_images, load_terminals, update_consoles, RandomNumbers, TerminalBuilderFont, TerminalLayer,
+    fix_images, load_terminals,
+    rex::RexAssetPlugin,
+    update_consoles, RandomNumbers, TerminalBuilderFont, TerminalLayer,
 };
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
@@ -183,6 +185,7 @@ impl Plugin for BTermBuilder {
         if self.log_diagnostics {
             app.add_plugin(LogDiagnosticsPlugin::default());
         }
+        app.add_plugin(RexAssetPlugin::default());
         app.insert_resource(self.clone());
         app.insert_resource(ScreenScaler::new(self.gutter));
         app.add_startup_system(load_terminals);

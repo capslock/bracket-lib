@@ -4,7 +4,8 @@ use bevy::{
 };
 use bracket_rex::prelude::XpFile;
 
-struct RexAssetPlugin;
+#[derive(Default)]
+pub struct RexAssetPlugin;
 
 impl Plugin for RexAssetPlugin {
     fn build(&self, app: &mut App) {
@@ -13,6 +14,7 @@ impl Plugin for RexAssetPlugin {
     }
 }
 
+#[derive(Default)]
 struct RexAssetLoader;
 
 impl AssetLoader for RexAssetLoader {
