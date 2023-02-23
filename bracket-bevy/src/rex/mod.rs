@@ -5,6 +5,9 @@ use bracket_color::prelude::{ColorPair, RGBA};
 use bracket_geometry::prelude::Point;
 pub use bracket_rex::prelude::{XpCell, XpColor, XpFile, XpLayer};
 
+mod plugin;
+pub use plugin::*;
+
 /// Applies an XpFile to a given console, with 0,0 offset by offset_x and offset-y.
 pub fn xp_to_console(xp: &XpFile, context: BracketContext, offset_x: i32, offset_y: i32) {
     for layer in &xp.layers {
