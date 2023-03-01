@@ -16,7 +16,7 @@ pub(crate) fn draw_box(
 ) {
     for y in sy..sy + height {
         for x in sx..sx + width {
-            terminal.set(x, y, WHITE.into(), BLACK.into(), 32);
+            terminal.set(x, y, fg, bg, 32);
         }
     }
 
