@@ -23,6 +23,8 @@ pub(crate) struct SimpleConsole {
     back_end: Option<Box<dyn SimpleConsoleBackend>>,
     clipping: Option<Rect>,
     mouse_chars: (i32, i32),
+    pub(crate) x_offset: f32,
+    pub(crate) y_offset: f32,
 }
 
 impl SimpleConsole {
@@ -31,10 +33,12 @@ impl SimpleConsole {
             font_index,
             width,
             height,
-            terminal: vec![TerminalGlyph::default(); (width * height) as usize],
+            terminal: vec![TerminalGlyph::default(); ((width + 2) * (height + 2)) as usize],
             back_end: None,
             clipping: None,
             mouse_chars: (0, 0),
+            x_offset: 0.0,
+            y_offset: 0.0,
         }
     }
 
@@ -81,7 +85,9 @@ impl SimpleConsole {
     }
 
     fn at(&self, x: i32, y: i32) -> usize {
-        if let Ok(pos) = (((self.height as i32 - 1 - y) * self.width as i32) + x).try_into() {
+        if let Ok(pos) =
+            (((self.height as i32 + 1 - (y + 1)) * (self.width + 2) as i32) + x + 1).try_into()
+        {
             pos
         } else {
             0
@@ -316,5 +322,28 @@ impl ConsoleFrontEnd for SimpleConsole {
 
     fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
         self
+    }
+
+    fn set_offset(&mut self, x: f32, y: f32) {
+        self.x_offset = x;
+        self.y_offset = y;
+    }
+
+    fn in_bounds(&self, x: i32, y: i32) -> bool {
+        let bounds = self.get_char_size();
+        let bounds = (bounds.0 as i32, bounds.1 as i32);
+        if let Some(clip) = self.get_clipping() {
+            clip.point_in_rect(Point::new(x, y)) && x < bounds.0 && y < bounds.1
+        } else {
+            x - 1 < bounds.0 && y - 1 < bounds.1 && x + 1 >= 0 && y + 1 >= 0
+        }
+    }
+
+    fn try_at(&self, x: i32, y: i32) -> Option<usize> {
+        if self.in_bounds(x, y) {
+            Some(self.at(x, y))
+        } else {
+            None
+        }
     }
 }

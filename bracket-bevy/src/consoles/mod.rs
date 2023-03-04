@@ -40,6 +40,7 @@ pub(crate) trait ConsoleFrontEnd: Sync + Send {
     fn set_bg(&mut self, x: i32, y: i32, bg: RGBA);
     fn draw_box(&mut self, x: i32, y: i32, width: i32, height: i32, fg: RGBA, bg: RGBA);
     fn draw_hollow_box(&mut self, x: i32, y: i32, width: i32, height: i32, fg: RGBA, bg: RGBA);
+    fn set_offset(&mut self, x: f32, y: f32);
 
     fn draw_box_double(&mut self, x: i32, y: i32, width: i32, height: i32, fg: RGBA, bg: RGBA);
 

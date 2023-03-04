@@ -144,6 +144,8 @@ pub(crate) struct SparseConsole<T: Tile> {
     back_end: Option<Box<dyn SparseConsoleBackend<T>>>,
     clipping: Option<Rect>,
     mouse_chars: (i32, i32),
+    pub(crate) x_offset: f32,
+    pub(crate) y_offset: f32,
 }
 
 impl<T: Tile> SparseConsole<T> {
@@ -156,6 +158,8 @@ impl<T: Tile> SparseConsole<T> {
             back_end: None,
             clipping: None,
             mouse_chars: (0, 0),
+            x_offset: 0.0,
+            y_offset: 0.0,
         }
     }
 
@@ -462,5 +466,10 @@ impl<T: Tile + 'static> ConsoleFrontEnd for SparseConsole<T> {
 
     fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
         self
+    }
+
+    fn set_offset(&mut self, x: f32, y: f32) {
+        self.x_offset = x;
+        self.y_offset = y;
     }
 }

@@ -50,7 +50,9 @@ impl SparseBackendWithBackground {
         let mut indices: Vec<u32> = Vec::with_capacity(n_elements * 12);
         let mut index_count = 0;
         let scale = screen_scaler.calc_step(self.width, self.height);
-        let top_left = screen_scaler.top_left();
+        let mut top_left = screen_scaler.top_left();
+        top_left.0 += parent.x_offset * scale.0;
+        top_left.1 += parent.y_offset * scale.1;
 
         for tile in parent.terminal.iter() {
             let (x, y) = tile.get_position();

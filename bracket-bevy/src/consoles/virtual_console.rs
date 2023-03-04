@@ -316,4 +316,6 @@ impl ConsoleFrontEnd for VirtualConsole {
     fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
         self
     }
+
+    fn set_offset(&mut self, _x: f32, _y: f32) {}
 }

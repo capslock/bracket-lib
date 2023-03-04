@@ -38,7 +38,7 @@ impl SimpleBackendNoBackground {
     }
 
     pub fn build_mesh(&self, parent: &SimpleConsole, screen_scaler: &ScreenScaler) -> Mesh {
-        let capacity = (self.width * self.height) as usize;
+        let capacity = ((self.width + 2) * (self.height + 2)) as usize;
         let mut vertices: Vec<[f32; 3]> = Vec::with_capacity(capacity * 4);
         let mut normals: Vec<[f32; 3]> = Vec::with_capacity(capacity * 4);
         let mut uv: Vec<[f32; 2]> = Vec::with_capacity(capacity * 4);
@@ -46,13 +46,15 @@ impl SimpleBackendNoBackground {
         let mut indices: Vec<u32> = Vec::with_capacity(capacity * 6);
         let mut index_count = 0;
         let scale = screen_scaler.calc_step(self.width, self.height);
-        let top_left = screen_scaler.top_left();
+        let mut top_left = screen_scaler.top_left();
+        top_left.0 += (parent.x_offset - 1.0) * scale.0;
+        top_left.1 += (parent.y_offset - 1.0) * scale.1;
 
         // Build the foreground
-        for y in 0..self.height {
+        for y in 0..(self.height + 2) {
             let screen_y = top_left.1 + (y as f32 * scale.1);
-            let mut idx = (y * self.width) as usize;
-            for x in 0..self.width {
+            let mut idx = (y * (self.width + 2)) as usize;
+            for x in 0..(self.width + 2) {
                 let screen_x = top_left.0 + (x as f32 * scale.0);
                 vertices.push([screen_x, screen_y, 0.5]);
                 vertices.push([screen_x + scale.0, screen_y, 0.5]);

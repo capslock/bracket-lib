@@ -578,4 +578,8 @@ impl BracketContext {
     pub fn get_mouse_position_for_current_layer(&self) -> Point {
         self.terminals.lock()[self.current_layer()].get_mouse_position_for_current_layer()
     }
+
+    pub fn set_offset(&self, x: f32, y: f32) {
+        self.terminals.lock()[self.current_layer()].set_offset(x, y)
+    }
 }
