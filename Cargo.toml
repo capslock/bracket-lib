@@ -59,6 +59,3 @@ members = [
     "bracket-embedding",
     "bracket-bevy",
 ]
-
-[patch.crates-io]
-bevy = { git = "https://github.com/bevyengine/bevy" }
