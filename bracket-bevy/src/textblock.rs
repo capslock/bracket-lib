@@ -1,4 +1,4 @@
-use bracket_color::prelude::{ColorPair, RGB, RGBA};
+use bracket_color::prelude::{ColorPair, RGBA};
 use bracket_geometry::prelude::{Point, Rect};
 use std::cmp;
 
@@ -42,7 +42,7 @@ impl TextBlock {
                 TerminalGlyph {
                     glyph: 0,
                     foreground: RGBA::from_f32(1.0, 1.0, 1.0, 1.0).as_rgba_f32(),
-                    background: RGBA::from_f32(0.0, 0.0, 0.0, 1.0).as_rgba_f32(),
+                    background: RGBA::from_f32(0.0, 0.0, 0.0, 0.0).as_rgba_f32(),
                 };
                 width as usize * height as usize
             ],
@@ -66,12 +66,12 @@ impl TextBlock {
             TerminalGlyph {
                 glyph: 0,
                 foreground: RGBA::from_f32(1.0, 1.0, 1.0, 1.0).as_rgba_f32(),
-                background: RGBA::from_f32(0.0, 0.0, 0.0, 1.0).as_rgba_f32(),
+                background: RGBA::from_f32(0.0, 0.0, 0.0, 0.0).as_rgba_f32(),
             },
         )
     }
 
-    pub fn fg<COLOR>(&mut self, fg: RGB)
+    pub fn fg<COLOR>(&mut self, fg: COLOR)
     where
         COLOR: Into<RGBA>,
     {
@@ -213,6 +213,12 @@ impl TextBlock {
                     self.cursor.0 = 0;
                     self.cursor.1 += 1;
                     self.max_height = self.max_height.max(self.cursor.1);
+                    let idx = self.at(self.cursor.0, self.cursor.1);
+                    if idx >= self.buffer.len() {
+                        if self.expand {
+                            self.push_line()
+                        }
+                    }
                 }
 
                 CommandType::Foreground { col } => self.fg = *col,
@@ -220,7 +226,7 @@ impl TextBlock {
                 CommandType::Reset {} => {
                     self.cursor = (0, 0);
                     self.fg = RGBA::from_f32(1.0, 1.0, 1.0, 1.0);
-                    self.bg = RGBA::from_f32(0.0, 0.0, 0.0, 1.0);
+                    self.bg = RGBA::from_f32(0.0, 0.0, 0.0, 0.0);
                 }
 
                 CommandType::TextWrapper { block: t } => {
@@ -259,6 +265,7 @@ impl TextBlock {
     }
 }
 
+#[derive(Clone)]
 pub enum CommandType {
     Text { block: Vec<FontCharType> },
     Centered { block: Vec<FontCharType> },
@@ -269,6 +276,7 @@ pub enum CommandType {
     Reset {},
 }
 
+#[derive(Clone)]
 pub struct TextBuilder {
     commands: Vec<CommandType>,
 }
