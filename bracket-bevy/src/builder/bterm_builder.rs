@@ -228,9 +228,12 @@ impl Plugin for BTermBuilder {
             );
         }
         if self.auto_apply_batches {
-            app.configure_sets(Update, BracketTermSet::UpdateFlush);
+            app.configure_sets(
+                PostUpdate,
+                BracketTermSet::UpdateFlush.before(BracketTermSet::PostUpdate),
+            );
             app.add_systems(
-                Update,
+                PostUpdate,
                 apply_all_batches.in_set(BracketTermSet::UpdateFlush),
             );
         }
