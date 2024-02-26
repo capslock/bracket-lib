@@ -204,37 +204,42 @@ impl Plugin for BTermBuilder {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(bevy::prelude::Msaa::Off);
         if self.with_diagnostics {
-            app.add_plugin(FrameTimeDiagnosticsPlugin);
+            app.add_plugins(FrameTimeDiagnosticsPlugin);
         }
         if self.log_diagnostics {
-            app.add_plugin(LogDiagnosticsPlugin::default());
+            app.add_plugins(LogDiagnosticsPlugin::default());
         }
-        app.add_plugin(RexAssetPlugin::default());
+        app.add_plugins(RexAssetPlugin::default());
         app.insert_resource(self.clone());
         app.insert_resource(ScreenScaler::new(self.gutter));
-        app.add_startup_systems(
-            (load_terminals, apply_system_buffers)
+        app.add_systems(
+            Startup,
+            (load_terminals, apply_deferred)
                 .chain()
                 .in_set(BracketTermSet::Startup),
         );
         if self.with_diagnostics {
-            app.configure_set(BracketTermSet::Diagnostics.in_base_set(CoreSet::PreUpdate));
+            app.configure_sets(PreUpdate, BracketTermSet::Diagnostics);
             app.add_systems(
+                PreUpdate,
                 (update_timing, update_mouse_position)
                     .chain()
                     .in_set(BracketTermSet::Diagnostics),
             );
         }
         if self.auto_apply_batches {
-            app.configure_set(BracketTermSet::UpdateFlush.in_base_set(CoreSet::UpdateFlush));
-            app.add_system(apply_all_batches.in_set(BracketTermSet::UpdateFlush));
+            app.configure_sets(Update, BracketTermSet::UpdateFlush);
+            app.add_systems(
+                Update,
+                apply_all_batches.in_set(BracketTermSet::UpdateFlush),
+            );
         }
-        app.configure_set(
-            BracketTermSet::PostUpdate
-                .in_base_set(CoreSet::PostUpdate)
-                .before(TransformSystem::TransformPropagate),
+        app.configure_sets(
+            PostUpdate,
+            BracketTermSet::PostUpdate.before(TransformSystem::TransformPropagate),
         );
         app.add_systems(
+            PostUpdate,
             (update_consoles, window_resize, fix_images)
                 .chain()
                 .in_set(BracketTermSet::PostUpdate),

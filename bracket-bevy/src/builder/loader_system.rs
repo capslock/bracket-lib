@@ -5,7 +5,7 @@ use crate::{
 };
 use bevy::{
     prelude::{
-        AssetServer, Assets, Camera2dBundle, Commands, Component, HandleUntyped, Mesh, Res, ResMut,
+        AssetServer, Assets, Camera2dBundle, Commands, Component, Mesh, Res, ResMut, UntypedHandle,
     },
     sprite::ColorMaterial,
 };
@@ -33,11 +33,11 @@ pub(crate) fn load_terminals(
     new_context.scaling_mode = context.scaling_mode;
 
     // Load the fonts
-    let mut texture_handles = Vec::<HandleUntyped>::new();
+    let mut texture_handles = Vec::<UntypedHandle>::new();
     for font in context.fonts.iter() {
         let texture_handle = asset_server.load(&font.filename);
         let material_handle = materials.add(ColorMaterial::from(texture_handle.clone()));
-        texture_handles.push(texture_handle.clone_untyped());
+        texture_handles.push(texture_handle.clone().untyped());
         new_context.fonts.push(FontStore::new(
             texture_handle,
             material_handle,

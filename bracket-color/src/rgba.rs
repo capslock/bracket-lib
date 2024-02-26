@@ -9,11 +9,7 @@ use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg_attr(
     feature = "bevy",
-    derive(
-        bevy::ecs::component::Component,
-        bevy::reflect::Reflect,
-        bevy::reflect::FromReflect
-    )
+    derive(bevy::ecs::component::Component, bevy::reflect::Reflect,)
 )]
 #[cfg_attr(feature = "bevy", reflect(Component))]
 #[cfg_attr(
@@ -316,7 +312,9 @@ impl RGBA {
     #[cfg(feature = "bevy")]
     #[must_use]
     pub fn as_rgba_f32(&self) -> [f32; 4] {
-        bevy::prelude::Color::as_linear_rgba_f32([self.r, self.g, self.b, self.a].into())
+        bevy::prelude::Color::as_linear_rgba_f32(bevy::prelude::Color::rgba(
+            self.r, self.g, self.b, self.a,
+        ))
     }
 
     /// Applies a quick grayscale conversion to the color
@@ -413,7 +411,7 @@ impl From<bevy::prelude::Color> for RGBA {
 #[cfg(feature = "bevy")]
 impl From<RGBA> for bevy::prelude::Color {
     fn from(item: RGBA) -> Self {
-        Self::from([item.r, item.g, item.b, item.a])
+        Self::rgba(item.r, item.g, item.b, item.a)
     }
 }
 

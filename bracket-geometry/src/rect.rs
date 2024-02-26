@@ -11,11 +11,7 @@ use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
 /// Defines a two-dimensional rectangle.
 #[cfg_attr(
     feature = "bevy",
-    derive(
-        bevy::ecs::component::Component,
-        bevy::reflect::Reflect,
-        bevy::reflect::FromReflect
-    )
+    derive(bevy::ecs::component::Component, bevy::reflect::Reflect,)
 )]
 #[cfg_attr(feature = "bevy", reflect(Component))]
 #[cfg_attr(

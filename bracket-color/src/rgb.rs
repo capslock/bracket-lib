@@ -9,11 +9,7 @@ use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg_attr(
     feature = "bevy",
-    derive(
-        bevy::ecs::component::Component,
-        bevy::reflect::Reflect,
-        bevy::reflect::FromReflect
-    )
+    derive(bevy::ecs::component::Component, bevy::reflect::Reflect,)
 )]
 #[cfg_attr(feature = "bevy", reflect(Component))]
 #[cfg_attr(
@@ -149,7 +145,7 @@ impl From<bevy::prelude::Color> for RGB {
 #[cfg(feature = "bevy")]
 impl From<RGB> for bevy::prelude::Color {
     fn from(item: RGB) -> Self {
-        Self::from([item.r, item.g, item.b])
+        Self::rgb(item.r, item.g, item.b)
     }
 }
 

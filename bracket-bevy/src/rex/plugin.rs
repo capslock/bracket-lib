@@ -1,5 +1,5 @@
 use bevy::{
-    asset::{AddAsset, AssetLoader, LoadedAsset},
+    asset::{io::Reader, AssetApp, AssetLoader, AsyncReadExt as _},
     prelude::{App, Plugin},
 };
 use bracket_rex::prelude::XpFile;
@@ -9,8 +9,8 @@ pub struct RexAssetPlugin;
 
 impl Plugin for RexAssetPlugin {
     fn build(&self, app: &mut App) {
-        app.add_asset::<XpFile>()
-            .add_asset_loader(RexAssetLoader {});
+        app.register_asset_loader(RexAssetLoader {})
+            .init_asset::<XpFile>();
     }
 }
 
@@ -18,15 +18,21 @@ impl Plugin for RexAssetPlugin {
 struct RexAssetLoader;
 
 impl AssetLoader for RexAssetLoader {
+    type Asset = XpFile;
+    type Settings = ();
+    type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+
     fn load<'a>(
         &'a self,
-        mut bytes: &'a [u8],
-        load_context: &'a mut bevy::asset::LoadContext,
-    ) -> bevy::utils::BoxedFuture<'a, Result<(), bevy::asset::Error>> {
+        reader: &'a mut Reader,
+        _settings: &'a Self::Settings,
+        _load_context: &'a mut bevy::asset::LoadContext,
+    ) -> bevy::utils::BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
         Box::pin(async move {
-            let asset = XpFile::read(&mut bytes)?;
-            load_context.set_default_asset(LoadedAsset::new(asset));
-            Ok(())
+            let mut bytes = Vec::new();
+            reader.read_to_end(&mut bytes).await?;
+            let asset = XpFile::read(&mut bytes.as_slice())?;
+            Ok(asset)
         })
     }
 

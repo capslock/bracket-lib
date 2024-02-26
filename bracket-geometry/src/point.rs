@@ -10,10 +10,7 @@ use bevy::ecs::reflect::ReflectComponent;
 #[cfg(all(feature = "bevy", feature = "serde"))]
 use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
 
-#[cfg_attr(
-    feature = "bevy",
-    derive(bevy::reflect::Reflect, bevy::reflect::FromReflect)
-)]
+#[cfg_attr(feature = "bevy", derive(bevy::reflect::Reflect))]
 #[cfg_attr(feature = "bevy", reflect(Component))]
 #[cfg_attr(
     all(feature = "bevy", feature = "serde"),

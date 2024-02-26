@@ -2,7 +2,10 @@ use super::SparseConsoleBackend;
 use crate::consoles::{scaler::FontScaler, BracketMesh, ScreenScaler, SparseConsole, Tile};
 use bevy::{
     prelude::*,
-    render::mesh::{Indices, PrimitiveTopology},
+    render::{
+        mesh::{Indices, PrimitiveTopology},
+        render_asset::RenderAssetUsages,
+    },
     sprite::MaterialMesh2dBundle,
 };
 
@@ -122,12 +125,15 @@ impl SparseBackendWithBackground {
             index_count += 4;
         }
 
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+        let mut mesh = Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        );
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uv);
         mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
-        mesh.set_indices(Some(Indices::U32(indices)));
+        mesh.insert_indices(Indices::U32(indices));
         mesh
     }
 }
@@ -140,7 +146,8 @@ impl<T: Tile> SparseConsoleBackend<T> for SparseBackendWithBackground {
         scaler: &ScreenScaler,
     ) -> Handle<Mesh> {
         if let Some(handle) = &self.mesh_handle {
-            meshes.set(handle.clone_weak(), self.build_mesh(front_end, scaler))
+            meshes.insert(handle.clone_weak(), self.build_mesh(front_end, scaler));
+            handle.clone()
         } else {
             meshes.add(self.build_mesh(front_end, scaler))
         }

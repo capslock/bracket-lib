@@ -82,8 +82,7 @@ impl XpLayer {
 }
 
 /// Structure representing a REXPaint image file which is a stack of layers
-#[cfg_attr(feature = "bevy", derive(bevy::reflect::TypeUuid))]
-#[cfg_attr(feature = "bevy", uuid = "a60fe515-6c8a-4956-a12f-61eebe6184cc")]
+#[cfg_attr(feature = "bevy", derive(bevy::reflect::TypePath, bevy::asset::Asset))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XpFile {
     /// Version number from header

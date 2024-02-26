@@ -8,11 +8,7 @@ use bevy::reflect::prelude::{ReflectDeserialize, ReflectSerialize};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "bevy",
-    derive(
-        bevy::ecs::component::Component,
-        bevy::reflect::Reflect,
-        bevy::reflect::FromReflect
-    )
+    derive(bevy::ecs::component::Component, bevy::reflect::Reflect,)
 )]
 #[cfg_attr(feature = "bevy", reflect(Component))]
 #[cfg_attr(
