@@ -58,7 +58,7 @@ pub(crate) fn load_terminals(
                 features,
             } => {
                 let mut console = SimpleConsole::new(*font_index, *width, *height);
-                console.initialize(&new_context.fonts, &mut meshes, features);
+                console.initialize(&new_context.fonts, &mut meshes, &features);
                 console.spawn(
                     &mut commands,
                     new_context.fonts[*font_index].material_handle.clone(),
@@ -73,7 +73,7 @@ pub(crate) fn load_terminals(
                 features,
             } => {
                 let mut console = SparseConsole::<SparseTile>::new(*font_index, *width, *height);
-                console.initialize(&new_context.fonts, &mut meshes, features);
+                console.initialize(&new_context.fonts, &mut meshes, &features);
                 console.spawn(
                     &mut commands,
                     new_context.fonts[*font_index].material_handle.clone(),
